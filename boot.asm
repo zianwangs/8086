@@ -48,41 +48,33 @@ SECTION header align=16 vstart=0x7c00
     mov al, bh
     int 0x10
     loop .readb
-    ; mov dx, 0x3f8
-    ; mov al, 0x31
-    ; out dx, al
-    ; mov dx, 0x3f8
-    ; mov al, 0x0a
-    ; out dx, al
-    ; dec si
-    ; jns end
-end:   
-    
-    
-    cli
-    mov word [0x8 * 4], timer
-    mov word [0x8 * 4 + 2], 0
-    sti
-    mov cl, 0
-.idle:
-    hlt
-    ; call reachable
-    cmp al, cl
-    je .idle
-    mov cl, al
+
+
+end:
+    mov al, 0
+    mov ah, 0
+    int 0x16
+    call adjust
+    mov ah, 0xe
+    int 0x10
+    jmp end
+  
+adjust:
+    cmp al, 0x7F
+    je is_delete
+    cmp al, 0x8
+    jne not_delete
+is_delete:
+    mov al, 0x08
     mov ah, 0xE
     int 0x10
-    jmp .idle
-
-timer:
-    mov al, 0
-    out 0x70, al
-    in al, 0x71
-    mov ah, al
     mov al, 0x20
-    out 0x20, al
-    mov al, ah
-    iret
+    mov ah, 0xE
+    int 0x10
+    mov al, 0x08
+not_delete:
+    ret
+
 
 reachable:
     mov [0x10000], ax

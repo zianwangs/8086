@@ -4,6 +4,7 @@ QEMU = qemu-system-x86_64
 QEMU_FLAGS = -nographic
 
 all: run
+.PHONY: all
 
 boot.bin: boot.asm
 	$(AS) $(AS_FLAGS) -o $@ $^
