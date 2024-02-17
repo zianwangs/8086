@@ -1,18 +1,28 @@
+CC = gcc
+CCFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -m32 -fno-omit-frame-pointer
+CCFLAGS += -no-pie -ffreestanding -nostdlib -nostdinc
 AS = nasm
-ASFLAGS = -f bin
+ASFLAGS = -f elf
+LD = ld 
+LDFLAGS = -m elf_i386 -static -nostdlib -N
+OBJCOPY = objcopy
 QEMU = qemu-system-x86_64
 QEMU_FLAGS = -nographic
 
-.PHONY: all
+.PHONY: all clean
+
 all: run
 
+boot.bin: boot.asm load.c
+	$(AS) $(ASFLAGS) -o boot.o boot.asm
+	$(CC) $(CCFLAGS) -c load.c
+	$(LD) $(LDFLAGS) -Ttext 0x7c00 -e entry -o boot boot.o load.o
+	$(OBJCOPY) -S -O binary -j .text boot boot.bin
 
-boot.bin: boot.asm
-	$(AS) $(ASFLAGS) -o $@ $^
-
-os.img: boot.bin
+os.img: boot.bin boot.sig
 	dd if=/dev/zero of=$@ count=2
-	dd if=$< of=$@ conv=notrunc
+	dd if=boot.bin of=$@ conv=notrunc
+	dd if=boot.sig of=$@ obs=1 seek=510 conv=notrunc
 	echo -n 'hello, world!' > ascii.text
 	dd if=ascii.text of=$@ seek=1 conv=notrunc
 
@@ -20,8 +30,5 @@ os.img: boot.bin
 run: os.img
 	$(QEMU) $(QEMU_FLAGS) -drive file=$<,index=0,format=raw,media=disk
 
-
-.PHONY: clean
-
 clean:
-	rm -f *.o *.bin *.text *.img
+	rm -f *.o *.bin *.text *.img *.out boot
