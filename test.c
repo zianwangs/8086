@@ -13,18 +13,22 @@ uint kalloc() {
 }
 
 void mappages(uint va_start, uint pa_start, int pages) {
-    uint cur = kpgdir;    
+    
     while (pages--) {
+         uint cur = kpgdir;   
         for (int i = 4; i > 0; --i) {
-            int idx = ((unsigned int)va_start >> ((i - 1) * 9 + 12)) & 0x1FF;
+            int shift = (i - 1) * 9 + 12;
+            int idx = shift >= 32 ? 0 : ((unsigned int)va_start >> shift) & 0x1FF;
             uint ptr = cur + idx * 2;
             if (i == 1 && pa_start != 0) {
-                *ptr = (unsigned int)pa_start;
+                *ptr = (unsigned int)pa_start | 3;
+                pa_start += 1000;
             } else if (*ptr == 0) {
-                *ptr = kalloc();
+                *ptr = (unsigned int)kalloc() | 3;
             }
-            cur = (uint)*ptr;
+            cur = (*ptr) & (~4095U);
         }
+        va_start += 1000;
     }
 }
 

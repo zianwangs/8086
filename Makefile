@@ -2,21 +2,21 @@ CC = gcc
 CCFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -fno-omit-frame-pointer
 CCFLAGS += -no-pie -ffreestanding -nostdlib -nostdinc
 AS = nasm
-ASFLAGS = -f elf
+ASFLAGS = -f elf64
 LD = ld 
-LDFLAGS = -m -static -nostdlib -N
+LDFLAGS = -static -nostdlib -N
 OBJCOPY = objcopy
 QEMU = qemu-system-x86_64
-QEMU_FLAGS = -nographic
+QEMU_FLAGS = -nographic -d int -no-reboot
 
 .PHONY: all clean
 
-all: os.img
+all: run
 
 boot.bin: boot.asm load.c
 	$(AS) $(ASFLAGS) -o boot.o boot.asm
-	$(CC) $(CCFLAGS) -m32 -c load.c
-	$(LD) $(LDFLAGS) -m elf_i386 -Ttext 0x7c00 -e entry -o boot boot.o load.o
+	$(CC) $(CCFLAGS) -c load.c
+	$(LD) $(LDFLAGS) -Ttext 0x7c00 -e entry -o boot boot.o load.o
 	$(OBJCOPY) -S -O binary -j .text boot boot.bin
 
 os.img: boot.bin boot.sig
