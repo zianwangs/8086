@@ -1,7 +1,7 @@
-BITS 32
+BITS 16
 ;-------------------------
 global entry
-extern load_kernel
+; extern load_kernel
 ;-------------------------
 dword_size           equ 0x4
 pg_entry_size        equ 0x8
@@ -12,7 +12,7 @@ pg_perm_bits         equ 0x11
 pg_entry_index_bits  equ 0x9
 pg_entry_offset_bits equ 0xC
 pg_entry_index_mask  equ 0x1FF
-pg_table_level       equ 0x4
+pg_table_levels      equ 0x4
 ;-------------------------
 kpgdir_pa            equ 0x100000
 boot_sector_pa_start equ 0x7000
@@ -34,17 +34,17 @@ kpgdir_va            equ 0xFFFFF000
 ;-------------------------
 SECTION .text align=16
 entry:
-    cli
-
+    ; cli
     lgdt [gdt_desc]
+    
     in al, 0x92
     or al, 0000_0010B
     out 0x92, al
     
     mov esp, boot_sector_pa_end
-  
+    
     call .alloc_one_clear_page ; for kpgdir
-    ; call reachable
+   
     mov edi, boot_sector_va_start 
     mov esi, boot_sector_pa_start
     mov edx, (boot_sector_va_end - boot_sector_va_start) / pg_size
@@ -69,7 +69,6 @@ entry:
     mov esi, kpgdir_pa
     mov edx, 1
     call .map_pages
-   
 
     ; page table setup is complete
 
@@ -92,92 +91,54 @@ entry:
 
     .alloc_one_clear_page: ; void alloc_one_clear_page(edi:specified_pa = 0);
         cld
-        push edi
-        push ecx
-        mov edi, [next_physical_page_addr] ; no specified pa, use global allocator
-        mov ecx, pg_size / dword_size
+        mov ebp, [next_physical_page_addr] ; no specified pa, use global allocator
+        lea eax, [ebp + pg_size]
+        mov [next_physical_page_addr], eax
         xor eax, eax
-        rep stosd
-        ; .memset:
-        ;     mov dword [edi], 0
-        ;     add edi, 4
-        ;     loop .memset
-        mov eax, edi
-        add edi, pg_size
-        mov [next_physical_page_addr], edi
-        pop ecx
-        pop edi
+        .memset:
+            mov dword [ebp + eax * 4], 0
+            inc eax
+            cmp eax, pg_size / pg_entry_size
+            jne .memset
+        mov eax, ebp
         ret
 
-    .map_pages: ; void map_pages(edi:va_start, esi:pa_start=0, dx:pages); edx makes the total size > 512 :)
-        mov eax, kpgdir_pa ; root kernel page table directory
-        push ecx ; pages
+    .map_pages:
+        mov ebp, kpgdir_pa ; no other registers :)
         .map_one_page:
-            mov ecx, pg_table_level ; 4
+            dec edx
+            cmp edx, 0xFFFFFFFF
+            je .end
+            mov ebx, pg_table_levels
             .map_one_level:
-                ; pte_addr = edi + (edi >> ((ecx - 1) * 9 + 12)) & 0x1FF) * 8
-                push edi ; target va address
-                push eax ; current page table directory
-                dec ecx
-                mov eax, ecx
-                push ebx
-                mov ebx, pg_entry_index_bits
-                mul ebx
-                pop ebx
-                add eax, pg_entry_offset_bits
-                push ecx
+            ; r9d=ebx, r8d=eax, rax=ebp
+                lea ecx, [ebx * 9]
+                mov eax, edi
+                add ecx, 3
+                shr eax, cl
                 mov ecx, eax
-                shr edi, cl
-                pop ecx
-                inc ecx
-                and edi, pg_entry_index_mask
-                pop eax
-                lea edi, [eax + edi * pg_entry_size] ; page entry address
-                mov ebx, [edi] ; page entry content
-                cmp ebx, 0
-                jne .current_level_complete
-                cmp ecx, 1
+                shl ecx, 3
+                and ecx, 0xFF8
+                add ecx, ebp
+                cmp ebx, 0x1
                 jne .not_the_last_level
-                cmp esi, 0
-                je .identity_map
-                push eax
-                call .alloc_one_clear_page
-                or eax, pg_perm_bits
-                mov [edi], eax
-                pop eax
-                jmp .current_level_complete
-                .identity_map:
-                    mov ebx, esi
-                    or ebx, pg_perm_bits
-                    mov [edi], ebx
-                jmp .current_level_complete
+                test esi, esi
+                je .not_the_last_level
+                mov [ecx], esi
+                jmp .exists
                 .not_the_last_level:
-                    push eax
-                    call .alloc_one_clear_page
-                    or eax, pg_perm_bits
-                    mov [edi], eax
-                    pop eax
-                .current_level_complete:
-                    ; nop
-                pop edi
-                dec ecx
-                jnz .map_one_level
-            add edi, pg_size
-            cmp esi, 0
-            je .no_need_to_inc_pa
-            add esi, pg_size
-            .no_need_to_inc_pa:
-                ; nop
-            pop ecx
-            dec ecx
-            jnz .map_one_page
-        ret
+                    cmp dword [ecx], 0
+                    jne .exists
+                call .alloc_one_clear_page
+                mov [ecx], eax
+                .exists:
+                    mov ebp, [ecx]
+                dec ebx
+                jne .map_one_level
+                jmp .map_one_page
+                .end:
+                    ret
 
-reachable:
-    mov al, 0x30
-    mov ah, 0xE
-    int 0x10
-    jmp $
 
 next_physical_page_addr: dd 0x100000
 
@@ -199,7 +160,8 @@ long_mode:
     mov gs, ax
     mov ss, ax
     mov esp, kernel_va_end
-    call load_kernel ; never returns
+    ; call load_kernel ; never returns
+    jmp 0x80000000
 
     .error:
         hlt

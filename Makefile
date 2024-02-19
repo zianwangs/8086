@@ -11,7 +11,7 @@ QEMU_FLAGS = -nographic
 
 .PHONY: all clean
 
-all: run
+all: os.img
 
 boot.bin: boot.asm load.c
 	$(AS) $(ASFLAGS) -o boot.o boot.asm
