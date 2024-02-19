@@ -1,3 +1,2 @@
-short load_kernel() {
-    return 2;
+void load_kernel() {
 }
