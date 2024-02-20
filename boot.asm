@@ -3,6 +3,10 @@ BITS 16
 global entry
 ; extern load_kernel
 ;-------------------------
+kernel_size          equ 0x1000
+;-------------------------
+disk_sector_size     equ 0x200
+;-------------------------
 dword_size           equ 0x4
 pg_entry_size        equ 0x8
 pg_size              equ 0x1000
@@ -195,13 +199,13 @@ gdt_desc:
 ;     push eax
 ;     mov al, [data]
 ;     cmp al, 0x40
-;     je .ggg
+;     je .gg
 ;     mov ah, 0xe
 ;     int 0x10
 ;     inc al
 ;     mov [data], al
 ;     pop eax
-; .ggg:
+; .gg:
 ;     ret
     
 ;     ; jmp $
@@ -216,15 +220,56 @@ long_mode:
     mov fs, ax
     mov gs, ax
     mov ss, ax
-    
-    ; call load_kernel ; never returns
+
+    mov dx, 0x1f2
+    mov al, kernel_size / disk_sector_size
+    out dx, al     ; how many sectors to read
+
+    inc dx
+    mov al, 1
+    out dx, al     ;LBA address 7~0
+
+    inc dx
+    mov al, 0
+    out dx, al     ;LBA address 15~8
+
+    inc dx
+    mov al, 0
+    out dx, al     ;LBA address 23~16
+
+    inc dx
+    mov al, 0xe0   ;LBA28 mode，master drive
+    or al, 0       ;LBA address 27~24
+    out dx, al
+
+    inc dx
+    mov al, 0x20
+    out dx, al     ; read
+
+    .disk_busy:
+        in al, dx
+        and al, 0x88   ; or (al & 0xC0) != 0x40
+        cmp al, 0x8
+        jne .disk_busy 
+
+    mov rcx, kernel_size / dword_size   ; how many dwords to read
+    mov edi, kernel_va_start
+    mov dx, 0x1f0
+
+    .read_dword:
+        in eax, dx
+        mov [edi], eax
+        add edi, 4
+        loop .read_dword
+
     mov esp, kernel_va_end
-    jmp $
-    ; jmp $
-    ; to save space
-    ; .error:
-    ;     hlt
-    ;     jmp .error
+    mov rax, kernel_va_start
+
+    jmp rax ; to the kernel entrypoint 'main', never returns
+
+    ; raise a divided by 0 exception to know we're back
+    mov bl, 0
+    div bl
 
 
 
