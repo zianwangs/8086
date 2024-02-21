@@ -1,0 +1,7 @@
+.vscode
+*.o
+*.bin
+*.text
+*.img
+*.out
+boot

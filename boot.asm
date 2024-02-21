@@ -220,9 +220,11 @@ long_mode:
     mov fs, ax
     mov gs, ax
     mov ss, ax
+ 
+    mov bl, kernel_size / disk_sector_size ; max(0 = 256 = 128kb)
 
     mov dx, 0x1f2
-    mov al, kernel_size / disk_sector_size
+    mov al, bl
     out dx, al     ; how many sectors to read
 
     inc dx
@@ -246,23 +248,36 @@ long_mode:
     mov al, 0x20
     out dx, al     ; read
 
+    mov dx, 0x1f7  ; status port
+    mov edi, kernel_va_start
+    
     .disk_busy:
         in al, dx
-        and al, 0x88   ; or (al & 0xC0) != 0x40
-        cmp al, 0x8
+        and al, 0x88   ; or (al & 0xC0) != 0x40 | (al & 0x88) != 0x40
+        cmp al, 0x8 
         jne .disk_busy 
 
-    mov rcx, kernel_size / dword_size   ; how many dwords to read
-    mov edi, kernel_va_start
     mov dx, 0x1f0
+    mov rcx, disk_sector_size / dword_size ; how many dwords to read
 
     .read_dword:
         in eax, dx
         mov [edi], eax
         add edi, 4
         loop .read_dword
+    
+    or dl, 7  ; back to status port
+    in al, dx
+    in al, dx
+    in al, dx
+    in al, dx ; 400 ns delay
 
-    mov esp, kernel_va_end
+    dec bl
+    cmp bl, 0
+    jne .disk_busy
+    
+    mov rbp, kernel_va_end
+    mov rsp, kernel_va_end - 16
     mov rax, kernel_va_start
 
     jmp rax ; to the kernel entrypoint 'main', never returns
