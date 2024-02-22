@@ -1,6 +1,6 @@
 CC = gcc
-CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -fno-omit-frame-pointer
-CFLAGS += -ffreestanding -nostdlib -nostdinc -fno-pie -no-pie -mcmodel=large
+CFLAGS = -fno-builtin -fno-strict-aliasing -fno-omit-frame-pointer
+CFLAGS += -ffreestanding -nostdlib -nostdinc
 AS = nasm
 ASFLAGS = -f elf64
 LD = ld 
@@ -11,7 +11,7 @@ QEMU_FLAGS = -nographic -d int -no-reboot
 
 .PHONY: all clean
 
-all: run
+all: os.img
 
 OBJS = \
 	main.o \
@@ -19,6 +19,7 @@ OBJS = \
 	lapic.o \
 	pic.o \
 	uart.o \
+	trap.o \
 
 boot.bin: boot.asm load.c
 	$(AS) $(ASFLAGS) -o boot.o boot.asm
@@ -27,7 +28,7 @@ boot.bin: boot.asm load.c
 	$(OBJCOPY) -S -O binary -j .text boot $@
 
 kernel.bin: $(OBJS) kernel.ld Makefile
-	$(LD) $(LDFLAGS) -m elf_x86_64 -T kernel.ld -o $@ $(OBJS)
+	$(LD) $(LDFLAGS) -T kernel.ld -o $@ $(OBJS)
 
 os.img: boot.bin boot.sig kernel.bin Makefile
 	dd if=/dev/zero of=$@ count=9

@@ -5,5 +5,6 @@ void main() {
     lapicinit();
     ioapicinit();
     uartinit();
+    trapinit();
     while (1);
 }

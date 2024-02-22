@@ -5,7 +5,7 @@
 
 #define COM1    0x3f8
 
-static int uart;    // is there a uart?
+static int uart = 0;    // is there a uart?
 
 void uartinit()
 {
@@ -34,7 +34,7 @@ void uartinit()
   ioapicenable(IRQ_COM1, 0);
 
 //   Announce that we're here.
-  for(char* p="\n8086 booting...\n"; *p; p++)
+  for(char* p = "\n8086 booting...\n"; *p; p++)
     uartputc(*p);
 
 }

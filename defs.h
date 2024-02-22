@@ -14,3 +14,6 @@ void ioapicenable(int irq, int cpunum);
 // === uart.c ======
 void uartinit();
 void uartputc(char c);
+
+// === traps.c =====
+void trapinit();
