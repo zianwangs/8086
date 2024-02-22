@@ -1,10 +1,10 @@
 CC = gcc
 CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -fno-omit-frame-pointer
-CFLAGS += -no-pie -fno-pie -ffreestanding -nostdlib -nostdinc
+CFLAGS += -ffreestanding -nostdlib -nostdinc -fno-pie -no-pie -mcmodel=large
 AS = nasm
 ASFLAGS = -f elf64
 LD = ld 
-LDFLAGS = -nostdlib
+LDFLAGS = -nostdlib -static
 OBJCOPY = objcopy
 QEMU = qemu-system-x86_64
 QEMU_FLAGS = -nographic -d int -no-reboot
@@ -27,7 +27,7 @@ boot.bin: boot.asm load.c
 	$(OBJCOPY) -S -O binary -j .text boot $@
 
 kernel.bin: $(OBJS) kernel.ld Makefile
-	$(LD) $(LDFLAGS) -T kernel.ld -o $@ $(OBJS)
+	$(LD) $(LDFLAGS) -m elf_x86_64 -T kernel.ld -o $@ $(OBJS)
 
 os.img: boot.bin boot.sig kernel.bin Makefile
 	dd if=/dev/zero of=$@ count=9
