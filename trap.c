@@ -77,15 +77,25 @@ void trapinit() {
 
 void idtinit() {
   lidt(idt, sizeof(idt));
-  sti();
 }
 
 uint32_t tick = 0;
 void trap(struct trapframe* tf) {
+    // printd(tf->trapno);
+    int k = 1;
+    switch (tf->trapno)
+    {
+      case IRQ_COM1 + T_IRQ0:
+        consoleintr();
+        break;
+      case IRQ_KBD + T_IRQ0:
+        k = k / 0;  // <- panic
+        break;
+      default:
+        break;
+    }
 
-  if (tf->trapno == IRQ_TIMER + T_IRQ0) {
-    printd(tick++);
     lapiceoi();
-  }
+
   // lapiceoi();
 }

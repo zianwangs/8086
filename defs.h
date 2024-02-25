@@ -13,11 +13,19 @@ void ioapicenable(int irq, int cpunum);
 
 // === uart.c ======
 void uartinit();
-void uartputc(char c);
+void uartputc(uint8_t c);
+uint8_t uartgetc();
 
 // === traps.c =====
 void trapinit();
 void idtinit();
+
+// === proc.c =======
+void scheduler();
+
+// === console.c ====
+void consoleinit();
+void consoleintr();
 
 // === print.c =====
 void prints(char* str);

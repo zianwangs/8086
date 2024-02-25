@@ -24,6 +24,8 @@ OBJS = \
 	trampoline.o \
 	vector.o \
 	trap.o \
+	proc.o \
+	console.o \
 	print.o \
 
 vector.asm: vector.py 

@@ -277,7 +277,7 @@ long_mode:
     jne .disk_busy
     
     mov rbp, kernel_va_end
-    mov rsp, kernel_va_end - 16
+    mov rsp, kernel_va_end
     mov rax, kernel_va_start
 
     jmp rax ; to the kernel entrypoint 'main', never returns

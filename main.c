@@ -6,6 +6,9 @@ void main() {
     ioapicinit();
     uartinit();
     trapinit();
-    idtinit();
-    while (1);
+    consoleinit();
+
+    idtinit(); // load idt and sti, should be the last step
+    scheduler(); // now it's just an infinite loop;
+    // never returns
 }

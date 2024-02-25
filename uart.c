@@ -22,7 +22,7 @@ void uartinit()
   outb(COM1 + 1, 0x01);    // Enable receive interrupts.
 
   // If status is 0xFF, no serial port.
-  if(inb(COM1+5) == 0xFF)
+  if(inb(COM1 + 5) == 0xFF)
     return;
 
   uart = 1;
@@ -39,16 +39,22 @@ void uartinit()
 
 }
 
-void uartputc(char c)
+// Spin for a given number of microseconds.
+// On real hardware would want to tune this dynamically.
+static void microdelay(int us) {
+  
+}
+
+void uartputc(uint8_t c)
 {
   if(!uart)
     return;
   for(int i = 0; i < 128 && !(inb(COM1 + 5) & 0x20); i++)
-    ;
+    microdelay(10);
   outb(COM1 + 0, c);
 }
 
-static int uartgetc(void)
+uint8_t uartgetc(void)
 {
   if(!uart)
     return -1;
