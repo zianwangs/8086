@@ -5,3 +5,4 @@
 *.img
 *.out
 boot
+__pycache__

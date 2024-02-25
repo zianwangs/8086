@@ -20,3 +20,10 @@ static inline void cli() {
 static inline void sti() {
     asm volatile("sti");
 }
+
+static inline void lidt(void* addr, uint16_t size) {
+    uint16_t idt[5];  // volatile ?
+    idt[0] = size - 1;
+    *(uint64_t*)(idt + 1) = (uint64_t)addr;
+    asm volatile("lidt (%0)" : : "r" (idt));
+}

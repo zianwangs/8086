@@ -21,13 +21,18 @@
 #define ICRHI      (0x0310 / 4)   // Interrupt Command [63:32]
 #define TIMER      (0x0320 / 4)   // Local Vector Table 0 (TIMER)
 #define X1         0x0000000B   // divide counts by 1
+#define X2         0x00000000
+#define X4         0x00000001
+#define X8         0x00000002
 #define X16        0x00000003
 #define X128       0x0000000A
+#define ONESHOT    0x00000000
 #define PERIODIC   0x00020000   // Periodic
+#define DEADLINE   0x00040000
 #define PCINT      (0x0340 / 4)   // Performance Counter LVT
 #define LINT0      (0x0350 / 4)   // Local Vector Table 1 (LINT0)
 #define LINT1      (0x0360 / 4)   // Local Vector Table 2 (LINT1)
-#define ERROR      (0x0380 / 4)   // Local Vector Table 3 (ERROR)
+#define ERROR      (0x0370 / 4)   // Local Vector Table 3 (ERROR)
 #define MASKED     0x00010000   // Interrupt masked
 #define TICR       (0x0380 / 4)   // Timer Initial Count
 #define TCCR       (0x0390 / 4)   // Timer Current Count
@@ -40,6 +45,7 @@ static void lapicw(int index, uint32_t value) {;
   lapic[ID];
 }
 
+
 void lapicinit() {
 
   lapicw(SVR, ENABLE | (T_IRQ0 + IRQ_SPURIOUS));
@@ -47,10 +53,12 @@ void lapicinit() {
   // from lapic[TICR] and then issues an interrupt.
   // If xv6 cared more about precise timekeeping,
   // TICR would be calibrated using an external time source.
+  // lapicw(TDCR, X2);
   lapicw(TDCR, X128);
   lapicw(TIMER, PERIODIC | (T_IRQ0 + IRQ_TIMER));
-  // TODO: need to know the actual bus freq
-  lapicw(TICR, 10000000 / X128);
+  // TODO: need to know the actual bus freq using cpuid
+  // coarsely calibrated to be 1GHz
+  lapicw(TICR, 1000000000 / 128);
 
   // Disable logical interrupt lines.
   lapicw(LINT0, MASKED);
@@ -79,6 +87,7 @@ void lapicinit() {
 
   // Enable interrupts on the APIC (but not on the processor).
   lapicw(TPR, 0);
+
 }
 
 int lapicid() {

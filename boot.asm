@@ -3,7 +3,7 @@ BITS 16
 global entry
 ; extern load_kernel
 ;-------------------------
-kernel_size          equ 0x1000
+kernel_size          equ 0x2000
 ;-------------------------
 disk_sector_size     equ 0x200
 ;-------------------------

@@ -6,5 +6,6 @@ void main() {
     ioapicinit();
     uartinit();
     trapinit();
+    idtinit();
     while (1);
 }
