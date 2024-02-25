@@ -9,6 +9,8 @@ OBJCOPY = objcopy
 QEMU = qemu-system-x86_64
 QEMU_FLAGS = -nographic  -no-reboot -smp 1
 
+KERNEL_BLOCKS = $(shell stat -c%b kernel.bin)
+
 .PHONY: all clean
 
 all: run
@@ -24,24 +26,24 @@ OBJS = \
 	trap.o \
 	print.o \
 
-boot.bin: boot.asm load.c
-	$(AS) $(ASFLAGS) -o boot.o boot.asm
-	$(CC) $(CFLAGS) -c load.c
-	$(LD) $(LDFLAGS) -N -Ttext 0x7c00 -e entry -o boot boot.o load.o
-	$(OBJCOPY) -S -O binary -j .text boot $@
+vector.asm: vector.py 
+	python3 $^ > $@
 
-vector.o: vector.py 
-	python3 $^ > vector.asm
-	$(AS) $(ASFLAGS) -o $@ vector.asm
-
-trampoline.o: trampoline.asm
+%.o: %.asm
 	$(AS) $(ASFLAGS) -o $@ $^
+
+boot.o: boot.asm
+	$(AS) $(ASFLAGS) -dKERNEL_BLOCKS=$(KERNEL_BLOCKS) -o $@ $^
+
+boot.bin: boot.o load.o
+	$(LD) $(LDFLAGS) -N -Ttext 0x7c00 -e entry -o boot $^
+	$(OBJCOPY) -S -O binary -j .text boot $@
 	
 kernel.bin: $(OBJS) kernel.ld Makefile
 	$(LD) $(LDFLAGS) -T kernel.ld -o $@ $(OBJS)
 
-os.img: boot.bin boot.sig kernel.bin Makefile
-	dd if=/dev/zero of=$@ count=17
+os.img: kernel.bin boot.bin boot.sig Makefile
+	dd if=/dev/zero of=$@ count=$$(( 1 + $(KERNEL_BLOCKS) ))
 	dd if=boot.bin of=$@ conv=notrunc
 	dd if=boot.sig of=$@ obs=1 seek=510 conv=notrunc
 	dd if=kernel.bin of=$@ seek=1 conv=notrunc

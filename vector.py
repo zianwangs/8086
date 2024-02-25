@@ -6,7 +6,6 @@ print("BITS 64")
 print("extern trampoline")
 print("global vector")
 
-# print("SECTION .text")
 for i in range(NTRAPS):
     print(f"vector{i}:")
     if i not in TRAPNO_SET_WITH_ERROR_CODE:

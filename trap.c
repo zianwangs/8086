@@ -9,7 +9,7 @@ struct gatedesc {
   uint16_t cs;         // code segment selector
   uint8_t ist : 5;        // # args, 0 for interrupt/trap gates
   uint8_t rsv1 : 3;        // reserved(should be zero I guess)
-  uint8_t type : 4;        // type(STS_{IG32,TG32})
+  uint8_t type : 4;        // 64-bit trap gate: 1111b, 64-bit intr gate: 1110b
   uint8_t s : 1;           // must be 0 (system)
   uint8_t dpl : 2;         // descriptor(meaning new) privilege level
   uint8_t p : 1;           // Present

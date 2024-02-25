@@ -3,7 +3,7 @@ BITS 16
 global entry
 ; extern load_kernel
 ;-------------------------
-kernel_size          equ 0x2000
+; KERNEL_BLOCKS      from Makefile
 ;-------------------------
 disk_sector_size     equ 0x200
 ;-------------------------
@@ -221,7 +221,7 @@ long_mode:
     mov gs, ax
     mov ss, ax
  
-    mov bl, kernel_size / disk_sector_size ; max(0 = 256 = 128kb)
+    mov bl, KERNEL_BLOCKS ; max(0 = 256 = 128kb)
 
     mov dx, 0x1f2
     mov al, bl
