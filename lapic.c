@@ -57,7 +57,8 @@ void lapicinit() {
   lapicw(TDCR, X128);
   lapicw(TIMER, PERIODIC | (T_IRQ0 + IRQ_TIMER));
   // TODO: need to know the actual bus freq using cpuid
-  // coarsely calibrated to be 1GHz
+  // coarsely calibrated to be 1GHz, so now it's a 1s
+  // time slice, might need to be shorter
   lapicw(TICR, 1000000000 / 128);
 
   // Disable logical interrupt lines.
@@ -90,7 +91,7 @@ void lapicinit() {
 
 }
 
-int lapicid() {
+uint8_t lapicid() {
   return lapic[ID] >> 24;
 }
 

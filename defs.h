@@ -6,6 +6,7 @@ void picinit();
 // === lapic.c ======
 void lapicinit();
 void lapiceoi();
+uint8_t lapicid();
 
 // === ioapic.c ====
 void ioapicinit();
@@ -21,11 +22,21 @@ void trapinit();
 void idtinit();
 
 // === proc.c =======
+void userinit();
 void scheduler();
 
 // === console.c ====
 void consoleinit();
 void consoleintr();
+
+// === kalloc.c =====
+void kinit(void* start, void* end);
+void* kalloc();
+void kfree(void* addr);
+
+// === vm.c =========
+void seginit();
+void* setupuvm();
 
 // === print.c =====
 void prints(char* str);

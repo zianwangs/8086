@@ -19,22 +19,23 @@ pg_entry_index_mask  equ 0x1FF
 pg_table_levels      equ 0x4
 ;-------------------------
 kpgdir_pa            equ 0x100000
-boot_sector_pa_start equ 0x7000
-boot_sector_pa_end   equ 0x8000
-ioapic_pa_start      equ 0xFEC00000
-ioapic_pa_end        equ 0xFEC01000
-lapic_pa_start       equ 0xFEE00000
-lapic_pa_end         equ 0xFEE01000
+kernel_pa_start      equ 0x200000
+; boot_sector_pa_start equ 0x7000
+; boot_sector_pa_end   equ 0x8000
+; ioapic_pa_start      equ 0xFEC00000
+; ioapic_pa_end        equ 0xFEC01000
+; lapic_pa_start       equ 0xFEE00000
+; lapic_pa_end         equ 0xFEE01000
 ;-------------------------
 boot_sector_va_start equ 0x7000
 boot_sector_va_end   equ 0x8000
 kernel_va_start      equ 0x80000000
-kernel_va_end        equ 0x80010000
+kernel_va_end        equ 0x80100000  ; 1MB
 ioapic_va_start      equ 0xFEC00000
 ioapic_va_end        equ 0xFEC01000
 lapic_va_start       equ 0xFEE00000
 lapic_va_end         equ 0xFEE01000
-kpgdir_va            equ 0xFFFFF000
+; kpgdir_va            equ 0xFFFFF000
 ;-------------------------
 SECTION .text align=16
 entry:
@@ -45,7 +46,7 @@ entry:
     or al, 0000_0010B
     out 0x92, al
   
-    mov esp, boot_sector_pa_end
+    mov esp, boot_sector_va_end
 
     ; mov edi, 0x100000
     ; .clear:
@@ -58,7 +59,7 @@ entry:
     ; call .alloc_one_clear_page
 
     mov edi, boot_sector_va_start 
-    mov esi, boot_sector_pa_start
+    mov esi, boot_sector_va_start
     mov dx, (boot_sector_va_end - boot_sector_va_start) / pg_size
     call .map_pages
 
@@ -87,23 +88,23 @@ entry:
     ; jne .ll
 
     mov edi, kernel_va_start
-    mov esi, 0
+    mov esi, kernel_pa_start
     mov dx, (kernel_va_end - kernel_va_start) / pg_size
     call .map_pages
 
     mov edi, ioapic_va_start
-    mov esi, ioapic_pa_start
+    mov esi, ioapic_va_start
     mov dx, (ioapic_va_end - ioapic_va_start) / pg_size
     call .map_pages
 
     mov edi, lapic_va_start
-    mov esi, lapic_pa_start
+    mov esi, lapic_va_start
     mov dx, (lapic_va_end - lapic_va_start) / pg_size
     call .map_pages
 
-    mov edi, kpgdir_va
+    mov edi, kpgdir_pa
     mov esi, kpgdir_pa
-    mov dx, 1
+    mov dx, (kernel_va_start - kpgdir_pa) / pg_size
     call .map_pages
 
     ; page table setup is complete
@@ -189,7 +190,7 @@ next_physical_page_addr: dd 0x100000
 
 gdt: dq 0
      dq 0x00209A0000000000 ; code L, P, S, E, RW
-     dq 0x0000920000000000 ; data P, S, RW
+     dq 0x0000920000000000 ; data P, S, RW(not needed)
 
 gdt_desc:
     .gdt_size: dw gdt_desc - gdt - 1
@@ -214,17 +215,18 @@ gdt_desc:
 BITS 64
 ;-------------------------
 long_mode:
-    mov ax, 0x0010
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-    mov ss, ax
- 
+    ; mov ax, 0x0010
+    ; mov ds, ax
+    ; mov es, ax
+    ; mov fs, ax
+    ; mov gs, ax
+    ; mov ss, ax
+    ; looks like segs other than cs are not required
+
     mov bl, KERNEL_BLOCKS ; max(0 = 256 = 128kb)
 
     mov dx, 0x1f2
-    mov al, bl
+    mov al, bl 
     out dx, al     ; how many sectors to read
 
     inc dx

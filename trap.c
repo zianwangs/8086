@@ -18,38 +18,6 @@ struct gatedesc {
   uint32_t rsv;
 };
 
-struct trapframe {
-  // registers as pushed by pusha
-  // xmm registers?
-  uint64_t r11;
-  uint64_t r10;
-  uint64_t r9;
-  uint64_t r8;
-  uint64_t rdi;
-  uint64_t rsi;
-  uint64_t rbp;
-  uint64_t rbx;
-  uint64_t rdx;
-  uint64_t rcx;
-  uint64_t rax;
-
-  // rest of trap frame, ignore segment registers for now
-  // uint64_t gs;
-  // uint64_t fs;
-  // uint64_t es;
-  // uint64_t ds;
-  uint64_t trapno;
-
-  // below here defined by x86 hardware
-  uint64_t errno;
-  uint64_t rip;
-  uint64_t cs;
-  uint64_t rflags;
-
-  // below here only when crossing rings, such as from user to kernel
-  uint64_t rsp;
-  uint64_t ss;
-};
 
 extern char end[];
 extern uint64_t vector[];

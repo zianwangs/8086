@@ -27,3 +27,18 @@ static inline void lidt(void* addr, uint16_t size) {
     *(uint64_t*)(idt + 1) = (uint64_t)addr;
     asm volatile("lidt (%0)" : : "r" (idt));
 }
+
+static inline void lgdt(void* addr, uint16_t size) {
+    uint16_t gdt[5];
+    gdt[0] = size - 1;
+    *(uint64_t*)(gdt + 1) = (uint64_t)addr;
+    asm volatile("lgdt (%0)" : : "r" (gdt));
+}
+
+static inline void ltr(uint16_t seg_selector) {
+    asm volatile("ltr %0" : : "r" (seg_selector));
+}
+
+static inline void lcr3(uint64_t pgdir) {
+    asm volatile("mov %0, %%cr3" : : "r" (pgdir));
+}

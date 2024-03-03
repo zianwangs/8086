@@ -6,3 +6,5 @@ typedef unsigned int   uint32_t;
 typedef unsigned long  uint64_t;
 typedef uint8_t        bool;
 
+#define NULL (void*)0
+

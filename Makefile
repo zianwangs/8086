@@ -26,6 +26,8 @@ OBJS = \
 	trap.o \
 	proc.o \
 	console.o \
+	vm.o \
+	kalloc.o \
 	print.o \
 
 vector.asm: vector.py 
@@ -52,6 +54,9 @@ os.img: kernel.bin boot.bin boot.sig Makefile
 
 run: os.img
 	$(QEMU) $(QEMU_FLAGS) -drive file=$<,index=0,format=raw,media=disk
+
+debug: os.img
+	$(QEMU) $(QEMU_FLAGS) -d int -drive file=$<,index=0,format=raw,media=disk
 
 clean:
 	rm -f *.o *.bin *.text *.img *.out boot

@@ -2,10 +2,15 @@ BITS 64
 
 extern trap
 global trampoline
+global trapret
 
 ; SECTION .text
 trampoline:
     ; ignroe segment registers for now 
+    ; push ds  ; need to confirm rsp is auto algined by 64 bits
+    ; push es
+    ; push gs
+    ; push fs
     push rax
     push rcx
     push rdx
@@ -18,7 +23,10 @@ trampoline:
     push r10
     push r11
 
-    ; ignore setting ds for now
+    ; mov ax, 0x10
+    ; mov ds, ax
+    ; mov es, ax
+
     mov rdi, rsp
     call trap
     
