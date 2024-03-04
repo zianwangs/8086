@@ -11,6 +11,8 @@ QEMU_FLAGS = -nographic  -no-reboot -smp 1
 
 KERNEL_BLOCKS = $(shell stat -c%b kernel.bin)
 
+.PRECIOUS: %.o
+
 .PHONY: all clean
 
 all: run
@@ -29,12 +31,16 @@ OBJS = \
 	vm.o \
 	kalloc.o \
 	print.o \
+	crt1.o \
 
 vector.asm: vector.py 
 	python3 $^ > $@
 
 %.o: %.asm
 	$(AS) $(ASFLAGS) -o $@ $^
+
+%.bin: %.o user.ld crt1.o
+	$(LD) $(LDFLAGS) -T user.ld -o $@ crt1.o $< 
 
 boot.o: boot.asm
 	$(AS) $(ASFLAGS) -dKERNEL_BLOCKS=$(KERNEL_BLOCKS) -o $@ $^
@@ -43,8 +49,8 @@ boot.bin: boot.o load.o
 	$(LD) $(LDFLAGS) -N -Ttext 0x7c00 -e entry -o boot $^
 	$(OBJCOPY) -S -O binary -j .text boot $@
 	
-kernel.bin: $(OBJS) kernel.ld Makefile
-	$(LD) $(LDFLAGS) -T kernel.ld -o $@ $(OBJS)
+kernel.bin: $(OBJS) kernel.ld init.bin Makefile
+	$(LD) $(LDFLAGS) -T kernel.ld -o $@ $(OBJS) -b binary init.bin
 
 os.img: kernel.bin boot.bin boot.sig Makefile
 	dd if=/dev/zero of=$@ count=$$(( 1 + $(KERNEL_BLOCKS) ))
