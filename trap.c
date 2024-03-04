@@ -3,6 +3,7 @@
 #include "traps.h"
 #include "x86.h"
 #include "defs.h"
+#include "proc.h"
 
 struct gatedesc {
   uint16_t offset_15_0;   // low 16 bits of offset in segment
@@ -17,7 +18,6 @@ struct gatedesc {
   uint32_t offset_63_32;
   uint32_t rsv;
 };
-
 
 extern char end[];
 extern uint64_t vector[];
@@ -49,21 +49,27 @@ void idtinit() {
 
 uint32_t tick = 0;
 void trap(struct trapframe* tf) {
-    // printd(tf->trapno);
-    int k = 1;
+    // printx(prints);
+    printd(tf->trapno);
+    // printd(tf->errno);
+
     switch (tf->trapno)
     {
-      case IRQ_COM1 + T_IRQ0:
-        consoleintr();
+      case IRQ_TIMER + T_IRQ0:
+        lapiceoi();
         break;
       case IRQ_KBD + T_IRQ0:
-        k = k / 0;  // <- panic
+        panic("Keyboard Intr Not Supported");
+        break;
+      case IRQ_COM1 + T_IRQ0:
+        consoleintr();
+        lapiceoi();
+        break;
+      case T_SYSCALL:
         break;
       default:
         break;
     }
 
-    lapiceoi();
-
-  // lapiceoi();
+    // lapiceoi();
 }

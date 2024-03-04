@@ -22,8 +22,12 @@ void trapinit();
 void idtinit();
 
 // === proc.c =======
+struct cpu* mycpu();
 void userinit();
 void scheduler();
+
+// === swtch.asm ====
+void swtch(struct context** out, struct context* in);
 
 // === console.c ====
 void consoleinit();
@@ -37,8 +41,13 @@ void kfree(void* addr);
 // === vm.c =========
 void seginit();
 void* setupuvm();
+void* uva2kva(uint64_t* pgdir, void* uva);
 
 // === print.c =====
 void prints(char* str);
 void printd(uint64_t i);
 void printx(uint64_t i);
+
+// === util.c ======
+void memcpy(char* dest, char* src, uint64_t count);
+void panic(char* msg);

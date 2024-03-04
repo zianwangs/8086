@@ -13,7 +13,11 @@ struct {
 
 int nextpid = 1;
 
-extern void trapret();
+void trapret();
+
+struct cpu* mycpu() {
+    return &cpus[lapicid()];
+}
 
 static struct proc* allocproc() {
     struct proc* proc = NULL;
@@ -34,8 +38,10 @@ static struct proc* allocproc() {
     void* rsp = proc->kstack + PG_SIZE;
     rsp -= sizeof(struct trapframe);
     proc->tf = rsp;
-    rsp -= 8;
-    *(uint64_t*)rsp = trapret;
+    // consec fall through ret: forkret -> trapret
+    // no need for forkret for now
+    // rsp -= 8;
+    // *(uint64_t*)rsp = trapret;
     rsp -= sizeof(struct context);
     proc->cxt = rsp;
     proc->cxt->rip = trapret;
@@ -46,15 +52,38 @@ static struct proc* allocproc() {
 }
 
 void userinit() {
+    extern char _binary_init_bin_start[], _binary_init_bin_end[];
     struct proc* proc = allocproc();
+    void* uaddr = uva2kva(proc->pgdir, 0);
+    uint64_t size = _binary_init_bin_end - _binary_init_bin_start;
+    memcpy(uaddr, _binary_init_bin_start, size);
+
+    proc->tf->cs =  (3 << 3) | 3;
+    proc->tf->rflags = 0x200;
+    proc->tf->rsp = (UPROG_PAGES + USTACK_PAGES) * PG_SIZE;
+    proc->tf->rip = 0;
+    proc->tf->ss = (4 << 3) | 3;
+
+    proc->state = RUNNABLE;
+
 }
 
 void scheduler() {
     sti();
+    struct cpu* c = mycpu();
     while (1) {
         for (struct proc* p = ptable.procs; p < &ptable.procs[MAXPROCS]; ++p) {
             if (p->state == RUNNABLE) {
                 lcr3(KV2P(p->pgdir));
+            
+                c->ts.rsp0_lo = p->kstack + PG_SIZE;
+                c->ts.iomb = 0xFFFF;
+                ltr(5 << 3);
+                // printx(trapret);
+       
+                swtch(&c->cxt, p->cxt);
+                lcr3(KPGDIR);
+                panic("back");
             }
         }
     }

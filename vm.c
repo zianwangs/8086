@@ -28,9 +28,9 @@ void seginit() {
     ((uint64_t*)(c->gdt))[5] = (base_31_24 << 56) | (0x0UL << 52) | (seg_limit_19_16 << 48) | (0x8UL << 44) | (0x9UL << 40) | (base_23_16 << 32) | (base_15_0 << 16) | seg_limit_15_0;
     ((uint64_t*)(c->gdt))[6] = base_63_32;
     lgdt(c->gdt, sizeof(c->gdt));
-    c->ts.rsp0_lo = 0x80010000;
-    c->ts.iomb = 0xFFFF;
-    ltr(5 << 3);
+    // c->ts.rsp0_lo = 0x80010000;
+    // c->ts.iomb = 0xFFFF;
+    // ltr(5 << 3);
 }
 
 static int mappages(uint64_t* pgdir, void* va, void* pa, uint16_t pages, uint16_t perm) {
@@ -55,15 +55,15 @@ static int mappages(uint64_t* pgdir, void* va, void* pa, uint16_t pages, uint16_
 }
 
 // won't work for KPGDIR, because it's below KERNEL_PA_START
-static uint64_t va2pa(uint64_t* pgdir, void* va) {
+void* uva2kva(uint64_t* pgdir, void* uva) {
     for (int i = 3; i >= 0; --i) {
-        int index = (uint64_t)va >> (i * 9 + 12) & 0x1FF;
+        int index = (uint64_t)uva >> (i * 9 + 12) & 0x1FF;
         if (pgdir[index] == 0)
             return 0;
         pgdir = KP2V(pgdir[index] & ~(PG_SIZE - 1));
        
     }
-    return pgdir;
+    return (uint64_t)pgdir | ((uint64_t)uva & (PG_SIZE - 1));
 }
 
 // alloc 2 pages, return the root pgdir
@@ -81,4 +81,3 @@ void* setupuvm() {
     mappages(pgdir, LAPIC_START, LAPIC_START, 1, PTE_W | PTE_P);
     return pgdir;
 }
-

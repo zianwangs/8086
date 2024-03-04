@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -fno-builtin -fno-strict-aliasing -fno-omit-frame-pointer
-CFLAGS += -ffreestanding -nostdlib -nostdinc
+CFLAGS += -ffreestanding -nostdlib -nostdinc -fno-pie -mcmodel=large
 AS = nasm
 ASFLAGS = -f elf64
 LD = ld 
@@ -31,7 +31,10 @@ OBJS = \
 	vm.o \
 	kalloc.o \
 	print.o \
+	swtch.o \
+	util.o \
 	crt1.o \
+
 
 vector.asm: vector.py 
 	python3 $^ > $@

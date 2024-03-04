@@ -12,7 +12,6 @@ void main() {
     uartinit();
     trapinit();
     consoleinit();
-    
     userinit();
     
     idtinit(); // load idt and sti, should be the last step

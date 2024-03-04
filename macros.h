@@ -8,7 +8,7 @@
 
 #define KV2P(addr)      ((addr) - KERNEL_VA_START + KERNEL_PA_START)
 #define KP2V(addr)      ((addr) - KERNEL_PA_START + KERNEL_VA_START)
-#define KPGDIR          0x100000UL
+#define KPGDIR          0x100000UL   // PA and VA
 
 #define PG_SIZE 4096UL
 #define UPROG_PAGES 1

@@ -8,3 +8,7 @@ typedef uint8_t        bool;
 
 #define NULL (void*)0
 
+struct context;
+struct cpu;
+
+

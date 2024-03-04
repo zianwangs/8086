@@ -32,6 +32,7 @@ trampoline:
     
 
 trapret:
+
   pop r11
   pop r10
   pop r9
