@@ -74,16 +74,20 @@ void scheduler() {
     while (1) {
         for (struct proc* p = ptable.procs; p < &ptable.procs[MAXPROCS]; ++p) {
             if (p->state == RUNNABLE) {
+                c->p = p;
                 lcr3(KV2P(p->pgdir));
-            
+                
+                c->gdt[5].type = 0x9;
                 c->ts.rsp0_lo = p->kstack + PG_SIZE;
                 c->ts.iomb = 0xFFFF;
+        
                 ltr(5 << 3);
                 // printx(trapret);
+                p->state = RUNNING;
        
                 swtch(&c->cxt, p->cxt);
                 lcr3(KPGDIR);
-                panic("back");
+            
             }
         }
     }

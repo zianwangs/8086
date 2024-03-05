@@ -63,6 +63,7 @@ struct cpu {
     struct segdesc gdt[7];
     struct taskstate ts;
     struct context* cxt;
+    struct proc* p;
 };
 
 

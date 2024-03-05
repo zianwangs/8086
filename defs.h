@@ -48,6 +48,10 @@ void prints(char* str);
 void printd(uint64_t i);
 void printx(uint64_t i);
 
+// === syscall.c ===
+void sys_yield();
+void syscall();
+
 // === util.c ======
 void memcpy(char* dest, char* src, uint64_t count);
 void panic(char* msg);

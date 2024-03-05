@@ -51,7 +51,6 @@ uint32_t tick = 0;
 void trap(struct trapframe* tf) {
     // printx(prints);
     printd(tf->trapno);
-    // printd(tf->errno);
 
     switch (tf->trapno)
     {
@@ -66,6 +65,8 @@ void trap(struct trapframe* tf) {
         lapiceoi();
         break;
       case T_SYSCALL:
+        mycpu()->p->tf = tf; // I guess it's for kernel nested intr
+        syscall();
         break;
       default:
         break;

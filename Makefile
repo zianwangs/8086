@@ -32,6 +32,8 @@ OBJS = \
 	kalloc.o \
 	print.o \
 	swtch.o \
+	syscall.o \
+	usys.o \
 	util.o \
 	crt1.o \
 
@@ -39,11 +41,14 @@ OBJS = \
 vector.asm: vector.py 
 	python3 $^ > $@
 
+usys.o: usys.S
+	$(CC) $(CFLAGS) -c -o $@ $^
+
 %.o: %.asm
 	$(AS) $(ASFLAGS) -o $@ $^
 
-%.bin: %.o user.ld crt1.o
-	$(LD) $(LDFLAGS) -T user.ld -o $@ crt1.o $< 
+%.bin: %.o user.ld crt1.o usys.o
+	$(LD) $(LDFLAGS) -T user.ld -o $@ crt1.o usys.o $< 
 
 boot.o: boot.asm
 	$(AS) $(ASFLAGS) -dKERNEL_BLOCKS=$(KERNEL_BLOCKS) -o $@ $^
