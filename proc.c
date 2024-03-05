@@ -50,7 +50,21 @@ static struct proc* allocproc() {
     
     
 }
+// static void user2init() {
+//     extern char _binary_init2_bin_start[], _binary_init2_bin_end[];
+//     struct proc* proc = allocproc();
+//     void* uaddr = uva2kva(proc->pgdir, 0);
+//     uint64_t size = _binary_init2_bin_end - _binary_init2_bin_start;
+//     memcpy(uaddr, _binary_init2_bin_start, size);
 
+//     proc->tf->cs =  (3 << 3) | 3;
+//     proc->tf->rflags = 0x200;
+//     proc->tf->rsp = (UPROG_PAGES + USTACK_PAGES) * PG_SIZE;
+//     proc->tf->rip = 0;
+//     proc->tf->ss = (4 << 3) | 3;
+
+//     proc->state = RUNNABLE;
+// }
 void userinit() {
     extern char _binary_init_bin_start[], _binary_init_bin_end[];
     struct proc* proc = allocproc();
@@ -63,9 +77,7 @@ void userinit() {
     proc->tf->rsp = (UPROG_PAGES + USTACK_PAGES) * PG_SIZE;
     proc->tf->rip = 0;
     proc->tf->ss = (4 << 3) | 3;
-
     proc->state = RUNNABLE;
-
 }
 
 void scheduler() {

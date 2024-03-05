@@ -9,3 +9,4 @@
 
 SYSCALL(yield)
 SYSCALL(echo)
+SYSCALL(add)

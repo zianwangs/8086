@@ -5,7 +5,6 @@ int main() {
 
     echo("Hello world!");
     yield();
-    echo("Hello world!");
-    yield();
-    while (1);
+    echo("Hello world!" + add(-5, 11));
+    while(1);
 }
