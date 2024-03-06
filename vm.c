@@ -28,9 +28,8 @@ void seginit() {
     ((uint64_t*)(c->gdt))[5] = (base_31_24 << 56) | (0x0UL << 52) | (seg_limit_19_16 << 48) | (0x8UL << 44) | (0x9UL << 40) | (base_23_16 << 32) | (base_15_0 << 16) | seg_limit_15_0;
     ((uint64_t*)(c->gdt))[6] = base_63_32;
     lgdt(c->gdt, sizeof(c->gdt));
-    // c->ts.rsp0_lo = 0x80010000;
-    // c->ts.iomb = 0xFFFF;
-    // ltr(5 << 3);
+    c->ts.iomb = 0xFFFF;
+    ltr(5 << 3);
 }
 
 static int mappages(uint64_t* pgdir, void* va, void* pa, uint16_t pages, uint16_t perm) {

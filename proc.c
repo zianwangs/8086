@@ -89,16 +89,18 @@ void scheduler() {
                 c->p = p;
                 lcr3(KV2P(p->pgdir));
                 
-                c->gdt[5].type = 0x9;
+                // c->gdt[5].type = 0x9;
+                // not need to ltr again, tested
                 c->ts.rsp0_lo = p->kstack + PG_SIZE;
-                c->ts.iomb = 0xFFFF;
+                // c->ts.iomb = 0xFFFF;
         
-                ltr(5 << 3);
+                // ltr(5 << 3);
                 // printx(trapret);
                 p->state = RUNNING;
        
                 swtch(&c->cxt, p->cxt);
                 lcr3(KPGDIR);
+                c->p = NULL;
             
             }
         }

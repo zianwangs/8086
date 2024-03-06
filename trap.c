@@ -49,8 +49,8 @@ void idtinit() {
 
 uint32_t tick = 0;
 void trap(struct trapframe* tf) {
-    // printx(prints);
-    printd(tf->trapno);
+    // printd(tf->trapno);
+    // printd(tf->errno);
 
     switch (tf->trapno)
     {
