@@ -90,7 +90,7 @@ void scheduler() {
                 lcr3(KV2P(p->pgdir));
                 
                 // c->gdt[5].type = 0x9;
-                // not need to ltr again, tested
+                // no need to ltr again, tested
                 c->ts.rsp0_lo = p->kstack + PG_SIZE;
                 // c->ts.iomb = 0xFFFF;
         
